@@ -1,0 +1,13 @@
+[package]
+name = "iota-ss"
+version = "0.0.0"
+edition = "2018"
+license = "MIT"
+
+[lib]
+name = "iota_ss"
+path = "lib.rs"
+
+[dependencies]
+iota-crypto = { version = "0.3.0", path = "../iota-crypto" }
+iota-conversion = { version = "0.3.0", path = "../iota-conversion" }

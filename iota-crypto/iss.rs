@@ -399,7 +399,9 @@ mod tests {
         let seed_trits = SEED.trits();
         let mut subseed = subseed(HashMode::Kerl, &seed_trits, 0).unwrap();
         let key = key(HashMode::Kerl, &mut subseed, 2).unwrap();
+        print!("{:?} ",key.trytes());
         let mut digest = digests(HashMode::Kerl, &key).unwrap();
+        print!("{:?} ",digest.trytes());
         let address = address(HashMode::Kerl, &mut digest).unwrap();
         assert_eq!(
             &address.trytes().unwrap(),

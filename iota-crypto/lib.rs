@@ -47,7 +47,7 @@ impl fmt::Display for HashMode {
 /// sponges used throughout IOTA
 pub trait Sponge
 where
-    Self: Default + Clone + Send + 'static,
+    Self: Default + Clone + Send + Copy + 'static,
 {
     /// Absorb trits into the sponge
     ///

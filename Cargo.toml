@@ -24,7 +24,8 @@ members = [
     "iota-constants",
     "iota-validation",
     "iota-signing",
-    "iota-client"
+    "iota-client",
+    "iota-ss"
 ]
 
 [badges]
@@ -41,6 +42,7 @@ iota-utils = { version = "0.2.1", path = "iota-utils" }
 iota-validation = { version = "0.2.1", path = "iota-validation" }
 iota-constants = { version = "0.2.1", path = "iota-constants" }
 iota-client = { version = "0.3.0", path = "iota-client" }
+iota-ss = { version = "0.0.0", path = "iota-ss" }
 crossbeam = "0.7"
 chrono = "0.4"
 crunchy = "0.2"
