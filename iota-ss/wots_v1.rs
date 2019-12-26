@@ -3,12 +3,15 @@ use iota_crypto::{HashMode, Sponge, subseed};
 use super::*;
 
 #[derive(Default)]
-pub struct WotsV1PrivateKeyGeneratorBuilder {
+pub struct WotsV1PrivateKeyGeneratorBuilder<S> {
     security_level: Option<usize>,
+    _sponge: PhantomData<S>
 }
 
-pub struct WotsV1PrivateKeyGenerator {
+#[derive(Default)]
+pub struct WotsV1PrivateKeyGenerator<S> {
     security_level: usize,
+    _sponge: PhantomData<S>
 }
 
 pub struct WotsV1PrivateKey<S> {
@@ -26,23 +29,25 @@ pub struct WotsV1Signature<S> {
     _sponge: PhantomData<S>
 }
 
-impl WotsV1PrivateKeyGeneratorBuilder {
+impl<S: Sponge> WotsV1PrivateKeyGeneratorBuilder<S> {
     pub fn security_level(&mut self, security_level: usize) -> &mut Self {
         self.security_level.replace(security_level);
         self
     }
 
-    pub fn build(&mut self) -> WotsV1PrivateKeyGenerator {
+    pub fn build(&mut self) -> WotsV1PrivateKeyGenerator<S> {
         WotsV1PrivateKeyGenerator {
-            security_level: self.security_level.unwrap()
+            security_level: self.security_level.unwrap(),
+            _sponge: PhantomData
         }
     }
 }
 
-impl<S: Sponge> PrivateKeyGenerator<S> for WotsV1PrivateKeyGenerator {
+impl<S: Sponge> PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
     type PrivateKey = WotsV1PrivateKey<S>;
 
-    fn generate(&self, seed: &[i8], index: usize, mut sponge: S) -> Self::PrivateKey {
+    fn generate(&self, seed: &[i8], index: usize) -> Self::PrivateKey {
+        let mut sponge = S::default();
         let mut state = Vec::new();
         let mut fragment = [0; 6561];
 
@@ -65,11 +70,12 @@ impl<S: Sponge> PrivateKeyGenerator<S> for WotsV1PrivateKeyGenerator {
     }
 }
 
-impl<S: Sponge> PrivateKey<S> for WotsV1PrivateKey<S> {
+impl<S: Sponge> PrivateKey for WotsV1PrivateKey<S> {
     type PublicKey = WotsV1PublicKey<S>;
     type Signature = WotsV1Signature<S>;
 
-    fn generate_public_key(&self, mut sponge: S) -> Self::PublicKey {
+    fn generate_public_key(&self) -> Self::PublicKey {
+        let mut sponge = S::default();
         let mut hash = [0; 243];
         let mut hashed_private_key = self.state.clone();
         let mut digests = Vec::new();
@@ -100,7 +106,8 @@ impl<S: Sponge> PrivateKey<S> for WotsV1PrivateKey<S> {
     }
 
     // TODO: hash ? enforce size ?
-    fn sign(&mut self, message: &[i8], mut sponge: S) -> Self::Signature {
+    fn sign(&mut self, message: &[i8]) -> Self::Signature {
+        let mut sponge = S::default();
         let mut signature = self.state.clone();
 
         for (i, chunk) in signature.chunks_mut(243).enumerate() {
@@ -120,16 +127,16 @@ impl<S: Sponge> PrivateKey<S> for WotsV1PrivateKey<S> {
     }
 }
 
-impl<S: Sponge> PublicKey<S> for WotsV1PublicKey<S> {
+impl<S: Sponge> PublicKey for WotsV1PublicKey<S> {
     type Signature = WotsV1Signature<S>;
 
-    fn verify(&self, message: &[i8], signature: &Self::Signature, sponge: S) -> bool {
-        let public_key = signature.recover_public_key(message, sponge);
+    fn verify(&self, message: &[i8], signature: &Self::Signature) -> bool {
+        let public_key = signature.recover_public_key(message);
 
         all_equal(&public_key.state, &self.state)
     }
 
-    fn key(&self) -> &[i8] {
+    fn to_bytes(&self) -> &[i8] {
         &self.state
     }
 }
@@ -144,16 +151,20 @@ impl<S: Sponge> WotsV1Signature<S> {
 }
 
 // TODO default impl ?
-impl<S: Sponge> Signature for WotsV1Signature<S> {
+impl<S: Sponge> crate::Signature for WotsV1Signature<S> {
     fn size(&self) -> usize {
         self.state.len()
     }
+    fn to_bytes(&self) -> &[i8] {
+        &self.state
+    }
 }
 
-impl<S: Sponge> RecoverableSignature<S> for WotsV1Signature<S> {
+impl<S: Sponge> RecoverableSignature for WotsV1Signature<S> {
     type PublicKey = WotsV1PublicKey<S>;
 
-    fn recover_public_key(&self, message: &[i8], mut sponge: S) -> Self::PublicKey {
+    fn recover_public_key(&self, message: &[i8]) -> Self::PublicKey {
+        let mut sponge = S::default();
         let mut hash = [0; 243];
         let mut state = self.state.clone();
         let mut digests = Vec::new();
@@ -198,28 +209,28 @@ mod tests {
     fn wotsv1_generic_test<S: Sponge>() {
 
         let seed_trits = &SEED.trits();
-        let sponge = S::default();
 
         for security in 1..4 {
             for index in 0..25  {
-                let private_key_generator = WotsV1PrivateKeyGeneratorBuilder::default().security_level(security).build();
+                let private_key_generator = WotsV1PrivateKeyGeneratorBuilder::<S>::default().security_level(security).build();
                 // TODO mut ?
-                let mut private_key = private_key_generator.generate(&seed_trits, index, sponge);
-                let public_key = private_key.generate_public_key(sponge);
-                let signature = private_key.sign(seed_trits, sponge);
-                let valid = public_key.verify(seed_trits, &signature, sponge);
+                let mut private_key = private_key_generator.generate(&seed_trits, index);
+                let public_key = private_key.generate_public_key();
+                println!("{:?}", public_key.to_bytes().trytes());
+                let signature = private_key.sign(seed_trits);
+                let valid = public_key.verify(seed_trits, &signature);
                 assert!(valid);
             }
         }
     }
 
-    #[test]
-    fn wotsv1_kerl_test() {
-        wotsv1_generic_test::<Kerl>();
-    }
-
+    // #[test]
+    // fn wotsv1_kerl_test() {
+    //     wotsv1_generic_test::<Kerl>();
+    // }
+    //
     // #[test]
     // fn wotsv1_curl_test() {
-    //     wotsv1_generic_test::<Curl>();
+    //     // wotsv1_generic_test::<Curl>();
     // }
 }

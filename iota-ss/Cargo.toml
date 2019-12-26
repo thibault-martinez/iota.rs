@@ -9,5 +9,8 @@ name = "iota_ss"
 path = "lib.rs"
 
 [dependencies]
+rand = "0.7"
 iota-crypto = { version = "0.3.0", path = "../iota-crypto" }
 iota-conversion = { version = "0.3.0", path = "../iota-conversion" }
+[dependencies.ed25519-dalek]
+version = "1.0.0-pre.3"
