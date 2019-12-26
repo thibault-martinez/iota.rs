@@ -34,7 +34,7 @@ impl Ed25519PrivateKeyGeneratorBuilder {
     }
 }
 
-impl PrivateKeyGenerator for Ed25519PrivateKeyGenerator {
+impl crate::PrivateKeyGenerator for Ed25519PrivateKeyGenerator {
     type PrivateKey = Ed25519PrivateKey;
 
     fn generate(&self, seed: &[i8], index: usize) -> Self::PrivateKey {
@@ -47,7 +47,7 @@ impl PrivateKeyGenerator for Ed25519PrivateKeyGenerator {
     }
 }
 
-impl PrivateKey for Ed25519PrivateKey {
+impl crate::PrivateKey for Ed25519PrivateKey {
     type PublicKey = Ed25519PublicKey;
     type Signature = Ed25519Signature;
 
@@ -69,7 +69,7 @@ impl PrivateKey for Ed25519PrivateKey {
     }
 }
 
-impl PublicKey for Ed25519PublicKey {
+impl crate::PublicKey for Ed25519PublicKey {
     type Signature = Ed25519Signature;
 
     fn verify(&self, message: &[i8], signature: &Self::Signature) -> bool {
@@ -103,7 +103,7 @@ impl crate::Signature for Ed25519Signature {
     }
 }
 
-// impl RecoverableSignature for Ed25519Signature {
+// impl crate::RecoverableSignature for Ed25519Signature {
 //     type PublicKey = Ed25519PublicKey;
 //
 //     fn recover_public_key(&self, message: &[i8]) -> Self::PublicKey {

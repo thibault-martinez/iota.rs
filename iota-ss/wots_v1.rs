@@ -43,7 +43,7 @@ impl<S: Sponge> WotsV1PrivateKeyGeneratorBuilder<S> {
     }
 }
 
-impl<S: Sponge> PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
+impl<S: Sponge> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
     type PrivateKey = WotsV1PrivateKey<S>;
 
     fn generate(&self, seed: &[i8], index: usize) -> Self::PrivateKey {
@@ -70,7 +70,7 @@ impl<S: Sponge> PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
     }
 }
 
-impl<S: Sponge> PrivateKey for WotsV1PrivateKey<S> {
+impl<S: Sponge> crate::PrivateKey for WotsV1PrivateKey<S> {
     type PublicKey = WotsV1PublicKey<S>;
     type Signature = WotsV1Signature<S>;
 
@@ -127,7 +127,7 @@ impl<S: Sponge> PrivateKey for WotsV1PrivateKey<S> {
     }
 }
 
-impl<S: Sponge> PublicKey for WotsV1PublicKey<S> {
+impl<S: Sponge> crate::PublicKey for WotsV1PublicKey<S> {
     type Signature = WotsV1Signature<S>;
 
     fn verify(&self, message: &[i8], signature: &Self::Signature) -> bool {
@@ -160,7 +160,7 @@ impl<S: Sponge> crate::Signature for WotsV1Signature<S> {
     }
 }
 
-impl<S: Sponge> RecoverableSignature for WotsV1Signature<S> {
+impl<S: Sponge> crate::RecoverableSignature for WotsV1Signature<S> {
     type PublicKey = WotsV1PublicKey<S>;
 
     fn recover_public_key(&self, message: &[i8]) -> Self::PublicKey {

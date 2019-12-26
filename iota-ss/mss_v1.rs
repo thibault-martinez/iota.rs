@@ -64,7 +64,7 @@ impl<S, G> MssV1PrivateKeyGeneratorBuilder<S, G>
     }
 }
 
-impl<S, G> PrivateKeyGenerator for MssV1PrivateKeyGenerator<S, G>
+impl<S, G> crate::PrivateKeyGenerator for MssV1PrivateKeyGenerator<S, G>
     where S: Sponge,
           G: PrivateKeyGenerator,
           <G as PrivateKeyGenerator>::PrivateKey: PrivateKey,
@@ -115,7 +115,7 @@ impl<S, G> PrivateKeyGenerator for MssV1PrivateKeyGenerator<S, G>
     }
 }
 
-impl<S, K> PrivateKey for MssV1PrivateKey<S, K>
+impl<S, K> crate::PrivateKey for MssV1PrivateKey<S, K>
     where S: Sponge,
           K: PrivateKey,
           <K as PrivateKey>::PublicKey: PublicKey,
@@ -174,7 +174,7 @@ impl<S, K> MssV1PublicKey<S, K>
     }
 }
 
-impl<S, K> PublicKey for MssV1PublicKey<S, K>
+impl<S, K> crate::PublicKey for MssV1PublicKey<S, K>
     where S: Sponge, K: PublicKey {
 
     type Signature = MssV1Signature<S>;
