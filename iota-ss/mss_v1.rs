@@ -40,9 +40,7 @@ pub struct MssV1Signature<S> {
 
 impl<S, G> MssV1PrivateKeyGeneratorBuilder<S, G>
     where S: Sponge,
-          G: PrivateKeyGenerator,
-          <G as PrivateKeyGenerator>::PrivateKey: PrivateKey,
-          <<G as PrivateKeyGenerator>::PrivateKey as PrivateKey>::PublicKey: PublicKey {
+          G: PrivateKeyGenerator {
 
     pub fn depth(&mut self, depth: usize) -> &mut Self {
         self.depth.replace(depth);
@@ -162,7 +160,8 @@ impl<S, K> crate::PrivateKey for MssV1PrivateKey<S, K>
 }
 
 impl<S, K> MssV1PublicKey<S, K>
-    where S: Sponge, K: PublicKey {
+    where S: Sponge,
+          K: PublicKey {
 
     pub fn new(state: &[i8], depth: usize) -> Self {
         Self {
@@ -175,7 +174,8 @@ impl<S, K> MssV1PublicKey<S, K>
 }
 
 impl<S, K> crate::PublicKey for MssV1PublicKey<S, K>
-    where S: Sponge, K: PublicKey {
+    where S: Sponge,
+          K: PublicKey {
 
     type Signature = MssV1Signature<S>;
 
