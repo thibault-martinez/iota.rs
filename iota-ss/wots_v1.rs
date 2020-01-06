@@ -3,6 +3,8 @@ use std::marker::PhantomData;
 use iota_crypto::{HashMode, Sponge, subseed};
 use super::*;
 
+// TODO state as Vec<i8> ?
+
 #[derive(Default)]
 pub struct WotsV1PrivateKeyGeneratorBuilder<S> {
     security_level: Option<u8>,
@@ -32,7 +34,7 @@ pub struct WotsV1Signature<S> {
 
 impl<S: Sponge> WotsV1PrivateKeyGeneratorBuilder<S> {
     pub fn security_level(&mut self, security_level: u8) -> &mut Self {
-        self.security_level.replace(security_level);
+        self.security_level = Some(security_level);
         self
     }
 
