@@ -1,5 +1,5 @@
 // mod ed25519;
-mod mss_v1;
+// mod mss_v1;
 mod wots_v1;
 
 // TODO: documentation
@@ -15,6 +15,7 @@ pub trait PrivateKey {
     type Signature;
 
     fn generate_public_key(&self) -> Self::PublicKey;
+
     // TODO: Why mut ?
     fn sign(&mut self, message: &[i8]) -> Self::Signature;
 }
@@ -25,6 +26,7 @@ pub trait PublicKey {
 
     fn verify(&self, message: &[i8], signature: &Self::Signature) -> bool;
     // TODO: FROM/INTO instead ?
+
     fn to_bytes(&self) -> &[i8];
 }
 
@@ -32,6 +34,7 @@ pub trait PublicKey {
 pub trait Signature {
     fn size(&self) -> usize;
     // TODO: FROM/INTO instead ?
+
     fn to_bytes(&self) -> &[i8];
 }
 

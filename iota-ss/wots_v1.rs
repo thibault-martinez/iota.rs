@@ -1,16 +1,17 @@
+// TODO clean use
 use std::marker::PhantomData;
 use iota_crypto::{HashMode, Sponge, subseed};
 use super::*;
 
 #[derive(Default)]
 pub struct WotsV1PrivateKeyGeneratorBuilder<S> {
-    security_level: Option<usize>,
+    security_level: Option<u8>,
     _sponge: PhantomData<S>
 }
 
 #[derive(Default)]
 pub struct WotsV1PrivateKeyGenerator<S> {
-    security_level: usize,
+    security_level: u8,
     _sponge: PhantomData<S>
 }
 
@@ -30,7 +31,7 @@ pub struct WotsV1Signature<S> {
 }
 
 impl<S: Sponge> WotsV1PrivateKeyGeneratorBuilder<S> {
-    pub fn security_level(&mut self, security_level: usize) -> &mut Self {
+    pub fn security_level(&mut self, security_level: u8) -> &mut Self {
         self.security_level.replace(security_level);
         self
     }
@@ -200,7 +201,7 @@ impl<S: Sponge> crate::RecoverableSignature for WotsV1Signature<S> {
 #[cfg(test)]
 mod tests {
 
-    use iota_crypto::{Kerl, Curl};
+    use iota_crypto::{Kerl};
     use iota_conversion::Trinary;
     use super::*;
     const SEED: &str =
@@ -216,18 +217,21 @@ mod tests {
                 // TODO mut ?
                 let mut private_key = private_key_generator.generate(&seed_trits, index);
                 let public_key = private_key.generate_public_key();
+                let bytes =  public_key.to_bytes();
                 println!("{:?}", public_key.to_bytes().trytes());
                 let signature = private_key.sign(seed_trits);
+                let recovered_public_key = signature.recover_public_key(seed_trits);
+                assert!(all_equal(public_key.to_bytes(), recovered_public_key.to_bytes()));
                 let valid = public_key.verify(seed_trits, &signature);
                 assert!(valid);
             }
         }
     }
 
-    // #[test]
-    // fn wotsv1_kerl_test() {
-    //     wotsv1_generic_test::<Kerl>();
-    // }
+    #[test]
+    fn wotsv1_kerl_test() {
+        wotsv1_generic_test::<Kerl>();
+    }
     //
     // #[test]
     // fn wotsv1_curl_test() {
