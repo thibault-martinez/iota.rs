@@ -4,6 +4,7 @@ use iota_crypto::{subseed, HashMode, Sponge};
 use std::marker::PhantomData;
 
 // TODO state as Vec<i8> ?
+// TODO constants
 
 #[derive(Default)]
 pub struct WotsV1PrivateKeyGeneratorBuilder<S> {
@@ -57,27 +58,28 @@ impl<S: Sponge> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
 
     fn generate(&self, seed: &[i8], index: usize) -> Self::PrivateKey {
         let mut sponge = S::default();
-        let mut state = Vec::new();
-        let mut fragment = [0; 6561];
-
         // TODO replace with custom impl
         let subseed = subseed(HashMode::Kerl, &seed, index).unwrap();
+        let mut state = vec![0; self.security_level as usize * 6561];
 
         sponge.absorb(&subseed).unwrap();
 
-        for _ in 0..self.security_level {
-            sponge.squeeze(&mut fragment).unwrap();
-            state.extend_from_slice(&fragment);
+        for s in 0..self.security_level {
+            sponge
+                .squeeze(&mut state[s as usize * 6561..(s as usize + 1) * 6561])
+                .unwrap();
         }
 
         sponge.reset();
 
-        WotsV1PrivateKey {
+        Self::PrivateKey {
             state: state,
             _sponge: PhantomData,
         }
     }
 }
+
+/////////////////////////
 
 impl<S: Sponge> crate::PrivateKey for WotsV1PrivateKey<S> {
     type PublicKey = WotsV1PublicKey<S>;
@@ -108,7 +110,7 @@ impl<S: Sponge> crate::PrivateKey for WotsV1PrivateKey<S> {
         sponge.squeeze(&mut hash).unwrap();
         sponge.reset();
 
-        WotsV1PublicKey {
+        Self::PublicKey {
             state: hash.to_vec(),
             _sponge: PhantomData,
         }
@@ -129,7 +131,7 @@ impl<S: Sponge> crate::PrivateKey for WotsV1PrivateKey<S> {
             }
         }
 
-        WotsV1Signature {
+        Self::Signature {
             state: signature,
             _sponge: PhantomData,
         }
@@ -152,7 +154,7 @@ impl<S: Sponge> crate::PublicKey for WotsV1PublicKey<S> {
 
 impl<S: Sponge> WotsV1Signature<S> {
     pub fn new(state: &[i8]) -> WotsV1Signature<S> {
-        WotsV1Signature {
+        Self {
             state: state.to_vec(),
             _sponge: PhantomData,
         }
@@ -199,7 +201,7 @@ impl<S: Sponge> crate::RecoverableSignature for WotsV1Signature<S> {
         sponge.squeeze(&mut hash).unwrap();
         sponge.reset();
 
-        WotsV1PublicKey {
+        Self::PublicKey {
             state: hash.to_vec(),
             _sponge: PhantomData,
         }
@@ -294,10 +296,10 @@ mod tests {
         );
     }
 
-    // #[test]
-    // fn wots_v1_kerl_test() {
-    //     wots_v1_generic_test::<Kerl>();
-    // }
+    #[test]
+    fn wots_v1_kerl_test() {
+        wots_v1_generic_test::<Kerl>();
+    }
     //
     // #[test]
     // fn wots_v1_curl_test() {
