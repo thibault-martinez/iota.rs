@@ -49,9 +49,9 @@ impl<S: Sponge> WotsV1PrivateKeyGeneratorBuilder<S> {
                     security_level: security_level,
                     _sponge: PhantomData,
                 }),
-                _ => Err("Invalid security level, possible values are 1, 2 or 3".to_string()),
+                _ => Err("Invalid security level, possible values are 1, 2 or 3".to_owned()),
             },
-            None => Err("Security level has not been set".to_string()),
+            None => Err("Security level has not been set".to_owned()),
         }
     }
 }
