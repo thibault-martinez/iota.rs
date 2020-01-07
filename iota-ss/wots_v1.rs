@@ -8,6 +8,7 @@ use std::marker::PhantomData;
 
 #[derive(Default)]
 pub struct WotsV1PrivateKeyGeneratorBuilder<S> {
+    #[allow(dead_code)] // TODO
     security_level: Option<u8>,
     _sponge: PhantomData<S>,
 }
@@ -34,11 +35,13 @@ pub struct WotsV1Signature<S> {
 }
 
 impl<S: Sponge> WotsV1PrivateKeyGeneratorBuilder<S> {
+    #[allow(dead_code)] // TODO
     pub fn security_level(&mut self, security_level: u8) -> &mut Self {
         self.security_level = Some(security_level);
         self
     }
 
+    #[allow(dead_code)] // TODO
     pub fn build(&mut self) -> Result<WotsV1PrivateKeyGenerator<S>, String> {
         match self.security_level {
             Some(security_level) => match security_level {
@@ -56,6 +59,8 @@ impl<S: Sponge> WotsV1PrivateKeyGeneratorBuilder<S> {
 impl<S: Sponge> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
     type PrivateKey = WotsV1PrivateKey<S>;
 
+    // TODO validate seed + tests
+    // TODO type of index ?
     fn generate(&self, seed: &[i8], index: usize) -> Self::PrivateKey {
         let mut sponge = S::default();
         // TODO replace with custom impl
@@ -79,17 +84,15 @@ impl<S: Sponge> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
     }
 }
 
-/////////////////////////
-
 impl<S: Sponge> crate::PrivateKey for WotsV1PrivateKey<S> {
     type PublicKey = WotsV1PublicKey<S>;
     type Signature = WotsV1Signature<S>;
 
     fn generate_public_key(&self) -> Self::PublicKey {
         let mut sponge = S::default();
-        let mut hash = [0; 243];
         let mut hashed_private_key = self.state.clone();
-        let mut digests = Vec::new();
+        let mut digests = vec![0; (self.state.len() / 6561) * 243];
+        let mut hash = vec![0; 243];
 
         for chunk in hashed_private_key.chunks_mut(243) {
             for _ in 0..26 {
@@ -99,11 +102,12 @@ impl<S: Sponge> crate::PrivateKey for WotsV1PrivateKey<S> {
             }
         }
 
-        for chunk in hashed_private_key.chunks(6561) {
+        for (i, chunk) in hashed_private_key.chunks(6561).enumerate() {
             sponge.absorb(chunk).unwrap();
-            sponge.squeeze(&mut hash).unwrap();
+            sponge
+                .squeeze(&mut digests[i * 243..(i + 1) * 243])
+                .unwrap();
             sponge.reset();
-            digests.extend_from_slice(&hash);
         }
 
         sponge.absorb(&digests).unwrap();
@@ -111,10 +115,12 @@ impl<S: Sponge> crate::PrivateKey for WotsV1PrivateKey<S> {
         sponge.reset();
 
         Self::PublicKey {
-            state: hash.to_vec(),
+            state: hash,
             _sponge: PhantomData,
         }
     }
+
+    /////////////////////////
 
     // TODO: hash ? enforce size ?
     fn sign(&mut self, message: &[i8]) -> Self::Signature {
@@ -153,6 +159,7 @@ impl<S: Sponge> crate::PublicKey for WotsV1PublicKey<S> {
 }
 
 impl<S: Sponge> WotsV1Signature<S> {
+    #[allow(dead_code)] // TODO
     pub fn new(state: &[i8]) -> WotsV1Signature<S> {
         Self {
             state: state.to_vec(),
@@ -230,7 +237,7 @@ mod tests {
                 let mut private_key = private_key_generator.generate(&seed_trits, index);
                 let public_key = private_key.generate_public_key();
                 let bytes = public_key.to_bytes();
-                println!("{:?}", public_key.to_bytes().trytes());
+                // println!("{:?}", public_key.to_bytes().trytes());
                 let signature = private_key.sign(seed_trits);
                 let recovered_public_key = signature.recover_public_key(seed_trits);
                 assert!(all_equal(
