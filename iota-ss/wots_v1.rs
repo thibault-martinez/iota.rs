@@ -120,9 +120,7 @@ impl<S: Sponge> crate::PrivateKey for WotsV1PrivateKey<S> {
         }
     }
 
-    /////////////////////////
-
-    // TODO: hash ? enforce size ?
+    // TODO: enforce hash size ?
     fn sign(&mut self, message: &[i8]) -> Self::Signature {
         let mut sponge = S::default();
         let mut signature = self.state.clone();
@@ -147,10 +145,9 @@ impl<S: Sponge> crate::PrivateKey for WotsV1PrivateKey<S> {
 impl<S: Sponge> crate::PublicKey for WotsV1PublicKey<S> {
     type Signature = WotsV1Signature<S>;
 
+    // TODO: enforce hash size ?
     fn verify(&self, message: &[i8], signature: &Self::Signature) -> bool {
-        let public_key = signature.recover_public_key(message);
-
-        all_equal(&public_key.state, &self.state)
+        all_equal(&signature.recover_public_key(message).state, &self.state)
     }
 
     fn to_bytes(&self) -> &[i8] {
@@ -160,7 +157,8 @@ impl<S: Sponge> crate::PublicKey for WotsV1PublicKey<S> {
 
 impl<S: Sponge> WotsV1Signature<S> {
     #[allow(dead_code)] // TODO
-    pub fn new(state: &[i8]) -> WotsV1Signature<S> {
+    pub fn new(state: &[i8]) -> Self {
+        // TODO check size
         Self {
             state: state.to_vec(),
             _sponge: PhantomData,
@@ -177,6 +175,8 @@ impl<S: Sponge> crate::Signature for WotsV1Signature<S> {
         &self.state
     }
 }
+
+/////////////////////////
 
 impl<S: Sponge> crate::RecoverableSignature for WotsV1Signature<S> {
     type PublicKey = WotsV1PublicKey<S>;
@@ -220,35 +220,9 @@ mod tests {
 
     use super::*;
     use iota_conversion::Trinary;
-    use iota_crypto::Kerl;
+    use iota_crypto::{Curl, Kerl};
     const SEED: &str =
         "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN";
-
-    fn wots_v1_generic_test<S: Sponge>() {
-        let seed_trits = &SEED.trits();
-
-        for security in 1..4 {
-            for index in 0..25 {
-                let private_key_generator = WotsV1PrivateKeyGeneratorBuilder::<S>::default()
-                    .security_level(security)
-                    .build()
-                    .unwrap();
-                // TODO mut ?
-                let mut private_key = private_key_generator.generate(&seed_trits, index);
-                let public_key = private_key.generate_public_key();
-                let bytes = public_key.to_bytes();
-                // println!("{:?}", public_key.to_bytes().trytes());
-                let signature = private_key.sign(seed_trits);
-                let recovered_public_key = signature.recover_public_key(seed_trits);
-                assert!(all_equal(
-                    public_key.to_bytes(),
-                    recovered_public_key.to_bytes()
-                ));
-                let valid = public_key.verify(seed_trits, &signature);
-                assert!(valid);
-            }
-        }
-    }
 
     #[test]
     fn wots_v1_generator_missing_security_level_test() {
@@ -303,13 +277,38 @@ mod tests {
         );
     }
 
-    #[test]
-    fn wots_v1_kerl_test() {
-        wots_v1_generic_test::<Kerl>();
+    fn wots_v1_generic_complete_test<S: Sponge>() {
+        let seed_trits = &SEED.trits();
+
+        for security in 1..4 {
+            for index in 0..5 {
+                let private_key_generator = WotsV1PrivateKeyGeneratorBuilder::<S>::default()
+                    .security_level(security)
+                    .build()
+                    .unwrap();
+                // TODO mut ?
+                let mut private_key = private_key_generator.generate(&seed_trits, index);
+                let public_key = private_key.generate_public_key();
+                let bytes = public_key.to_bytes();
+                // println!("{:?}", public_key.to_bytes().trytes());
+                let signature = private_key.sign(seed_trits);
+                let recovered_public_key = signature.recover_public_key(seed_trits);
+                assert!(all_equal(
+                    public_key.to_bytes(),
+                    recovered_public_key.to_bytes()
+                ));
+                let valid = public_key.verify(seed_trits, &signature);
+                assert!(valid);
+            }
+        }
     }
-    //
-    // #[test]
-    // fn wots_v1_curl_test() {
-    //     // wots_v1_generic_test::<Curl>();
-    // }
+
+    #[test]
+    fn wots_v1_kerl_complete_test() {
+        wots_v1_generic_complete_test::<Kerl>();
+    }
+    #[test]
+    fn wots_v1_curl_complete_test() {
+        wots_v1_generic_complete_test::<Curl>();
+    }
 }
