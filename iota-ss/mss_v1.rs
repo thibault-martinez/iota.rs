@@ -299,7 +299,7 @@ mod tests {
     fn mss_v1_gen_test() {
         const SEED: &str =
             "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN";
-        const SECURITY_LEVEL: usize = 1;
+        const SECURITY_LEVEL: u8 = 1;
         const DEPTH: usize = 5;
 
         let seed_trits = &SEED.trits();
@@ -307,7 +307,8 @@ mod tests {
         let wots_v1_kerl_private_key_generator =
             WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
                 .security_level(SECURITY_LEVEL)
-                .build();
+                .build()
+                .unwrap();
         // todo try with not recover
         let mss_v1_private_key_generator =
             MssV1PrivateKeyGeneratorBuilder::<Kerl, WotsV1PrivateKeyGenerator<Kerl>>::default()
