@@ -153,6 +153,7 @@ where
 
         println!("{:?} - {:?}", self.index, tree_index);
 
+        // TODO PAD TO 6561
         state[0..ots_signature.size()].copy_from_slice(ots_signature.to_bytes());
 
         while tree_index != 0 {
@@ -205,12 +206,13 @@ where
 
     fn verify(&self, message: &[i8], signature: &Self::Signature) -> bool {
         let mut sponge = S::default();
-        let security = (signature.state.len() / 6561) - 1;
         println!("signature len {:?}", signature.state.len());
-        println!("security {:?}", security);
         // TODO From template type !!!
-        let ots_signature = WotsV1Signature::<S>::new(&signature.state[0..security * 6561]);
-        let siblings = &signature.state[security * 6561..(security + 1) * 6561];
+        let ots_signature = WotsV1Signature::<S>::new(
+            &signature.state[0..((signature.state.len() / 6561) - 1) * 6561],
+        );
+        let siblings = &signature.state.chunks(6561).last().unwrap();
+        // let siblings = &signature.state[((signature.state.len() / 6561) - 1) * 6561..];
         let ots_public_key = ots_signature.recover_public_key(message);
         let mut hash = [0; 243];
 

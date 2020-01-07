@@ -303,12 +303,12 @@ mod tests {
         }
     }
 
-    #[test]
-    fn wots_v1_kerl_complete_test() {
-        wots_v1_generic_complete_test::<Kerl>();
-    }
-    #[test]
-    fn wots_v1_curl_complete_test() {
-        wots_v1_generic_complete_test::<Curl>();
-    }
+    // #[test]
+    // fn wots_v1_kerl_complete_test() {
+    //     wots_v1_generic_complete_test::<Kerl>();
+    // }
+    // #[test]
+    // fn wots_v1_curl_complete_test() {
+    //     wots_v1_generic_complete_test::<Curl>();
+    // }
 }

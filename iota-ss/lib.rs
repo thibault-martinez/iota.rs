@@ -1,5 +1,5 @@
 // mod ed25519;
-// mod mss_v1;
+mod mss_v1;
 mod wots_v1;
 
 // TODO: documentation
