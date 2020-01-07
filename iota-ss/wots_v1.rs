@@ -11,7 +11,7 @@ pub struct WotsV1PrivateKeyGeneratorBuilder<S> {
     _sponge: PhantomData<S>
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct WotsV1PrivateKeyGenerator<S> {
     security_level: u8,
     _sponge: PhantomData<S>
@@ -38,10 +38,18 @@ impl<S: Sponge> WotsV1PrivateKeyGeneratorBuilder<S> {
         self
     }
 
-    pub fn build(&mut self) -> WotsV1PrivateKeyGenerator<S> {
-        WotsV1PrivateKeyGenerator {
-            security_level: self.security_level.unwrap(),
-            _sponge: PhantomData
+    pub fn build(&mut self) -> Result<WotsV1PrivateKeyGenerator<S>, String> {
+        match self.security_level {
+            Some(security_level) =>
+                match security_level {
+                    1 | 2 | 3 =>
+                        Ok(WotsV1PrivateKeyGenerator {
+                            security_level: security_level,
+                            _sponge: PhantomData
+                        }),
+                    _ => Err("Invalid security level, possible values are 1, 2 or 3".to_string())
+                },
+            None => Err("Security level has not been set".to_string())
         }
     }
 }
@@ -209,13 +217,13 @@ mod tests {
     const SEED: &str =
         "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN";
 
-    fn wotsv1_generic_test<S: Sponge>() {
+    fn wots_v1_generic_test<S: Sponge>() {
 
         let seed_trits = &SEED.trits();
 
         for security in 1..4 {
             for index in 0..25  {
-                let private_key_generator = WotsV1PrivateKeyGeneratorBuilder::<S>::default().security_level(security).build();
+                let private_key_generator = WotsV1PrivateKeyGeneratorBuilder::<S>::default().security_level(security).build().unwrap();
                 // TODO mut ?
                 let mut private_key = private_key_generator.generate(&seed_trits, index);
                 let public_key = private_key.generate_public_key();
@@ -231,12 +239,30 @@ mod tests {
     }
 
     #[test]
-    fn wotsv1_kerl_test() {
-        wotsv1_generic_test::<Kerl>();
+    fn wots_v1_generator_missing_security_level_test() {
+        assert_eq!(WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default().build().unwrap_err(), "Security level has not been set");
     }
+
+    #[test]
+    fn wots_v1_generator_invalid_security_level_test() {
+        assert_eq!(WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default().security_level(0).build().unwrap_err(), "Invalid security level, possible values are 1, 2 or 3");
+        assert_eq!(WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default().security_level(4).build().unwrap_err(), "Invalid security level, possible values are 1, 2 or 3");
+    }
+
+    #[test]
+    fn wots_v1_generator_valid_test() {
+        assert_eq!(WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default().security_level(1).build().is_ok(), true);
+        assert_eq!(WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default().security_level(2).build().is_ok(), true);
+        assert_eq!(WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default().security_level(3).build().is_ok(), true);
+    }
+
+    // #[test]
+    // fn wots_v1_kerl_test() {
+    //     wots_v1_generic_test::<Kerl>();
+    // }
     //
     // #[test]
-    // fn wotsv1_curl_test() {
-    //     // wotsv1_generic_test::<Curl>();
+    // fn wots_v1_curl_test() {
+    //     // wots_v1_generic_test::<Curl>();
     // }
 }
