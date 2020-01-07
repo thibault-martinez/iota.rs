@@ -72,7 +72,7 @@ impl crate::PublicKey for Ed25519PublicKey {
         self.key.verify(test, &signature.signature).is_ok()
     }
 
-    fn key(&self) -> &[i8] {
+    fn to_bytes(&self) -> &[i8] {
         // &self.state
         &[]
     }
@@ -93,7 +93,7 @@ impl crate::Signature for Ed25519Signature {
         42
     }
     fn to_bytes(&self) -> &[i8] {
-        []
+        &[]
     }
 }
 
