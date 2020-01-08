@@ -352,54 +352,56 @@ mod tests {
 
     #[test]
     fn mss_v1_gen_kerl_kerl_test() {
-        const SECURITY_LEVEL: u8 = 1;
-
-        let wots_v1_kerl_private_key_generator =
-            WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
-                .security_level(SECURITY_LEVEL)
-                .build()
-                .unwrap();
-        mss_v1_generic_gen_test::<Kerl, WotsV1PrivateKeyGenerator<Kerl>>(
-            wots_v1_kerl_private_key_generator,
-        );
+        for s in 1..4 {
+            let wots_v1_kerl_private_key_generator =
+                WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
+                    .security_level(s)
+                    .build()
+                    .unwrap();
+            mss_v1_generic_gen_test::<Kerl, WotsV1PrivateKeyGenerator<Kerl>>(
+                wots_v1_kerl_private_key_generator,
+            );
+        }
     }
 
     #[test]
     fn mss_v1_gen_curl_curl_test() {
-        const SECURITY_LEVEL: u8 = 1;
-
-        let wots_v1_kerl_private_key_generator =
-            WotsV1PrivateKeyGeneratorBuilder::<Curl>::default()
-                .security_level(SECURITY_LEVEL)
-                .build()
-                .unwrap();
-        mss_v1_generic_gen_test::<Curl, WotsV1PrivateKeyGenerator<Curl>>(
-            wots_v1_kerl_private_key_generator,
-        );
+        for s in 1..4 {
+            let wots_v1_kerl_private_key_generator =
+                WotsV1PrivateKeyGeneratorBuilder::<Curl>::default()
+                    .security_level(s)
+                    .build()
+                    .unwrap();
+            mss_v1_generic_gen_test::<Curl, WotsV1PrivateKeyGenerator<Curl>>(
+                wots_v1_kerl_private_key_generator,
+            );
+        }
     }
 
     #[test]
     fn mss_v1_gen_curl_kerl_test() {
-        const SECURITY_LEVEL: u8 = 1;
-        let wots_v1_kerl_private_key_generator =
-            WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
-                .security_level(SECURITY_LEVEL)
-                .build()
-                .unwrap();
-        mss_v1_generic_gen_test::<Curl, WotsV1PrivateKeyGenerator<Kerl>>(
-            wots_v1_kerl_private_key_generator,
-        );
+        for s in 1..4 {
+            let wots_v1_kerl_private_key_generator =
+                WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
+                    .security_level(s)
+                    .build()
+                    .unwrap();
+            mss_v1_generic_gen_test::<Curl, WotsV1PrivateKeyGenerator<Kerl>>(
+                wots_v1_kerl_private_key_generator,
+            );
+        }
     }
     #[test]
     fn mss_v1_gen_kerl_curl_test() {
-        const SECURITY_LEVEL: u8 = 1;
-        let wots_v1_kerl_private_key_generator =
-            WotsV1PrivateKeyGeneratorBuilder::<Curl>::default()
-                .security_level(SECURITY_LEVEL)
-                .build()
-                .unwrap();
-        mss_v1_generic_gen_test::<Kerl, WotsV1PrivateKeyGenerator<Curl>>(
-            wots_v1_kerl_private_key_generator,
-        );
+        for s in 1..4 {
+            let wots_v1_kerl_private_key_generator =
+                WotsV1PrivateKeyGeneratorBuilder::<Curl>::default()
+                    .security_level(s)
+                    .build()
+                    .unwrap();
+            mss_v1_generic_gen_test::<Kerl, WotsV1PrivateKeyGenerator<Curl>>(
+                wots_v1_kerl_private_key_generator,
+            );
+        }
     }
 }
