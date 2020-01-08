@@ -90,24 +90,24 @@ where
             let ots_public_key = ots_private_key.generate_public_key();
             let tree_index = (1 << (self.depth - 1)) + key_index - 1;
 
-            println!(
-                "{:?} - {:?} - {:?}",
-                key_index,
-                tree_index,
-                ots_public_key.to_bytes().trytes()
-            );
+            // println!(
+            //     "{:?} - {:?} - {:?}",
+            //     key_index,
+            //     tree_index,
+            //     ots_public_key.to_bytes().trytes()
+            // );
             keys.push(ots_private_key);
             tree[tree_index * 243..(tree_index + 1) * 243]
                 .copy_from_slice(ots_public_key.to_bytes());
         }
 
         for depth in (0..self.depth - 1).rev() {
-            println!("d = {:} n = {:}", depth, (1 << depth));
+            // println!("d = {:} n = {:}", depth, (1 << depth));
             for i in 0..(1 << depth) {
                 let index = (1 << depth) + i - 1;
                 let left_index = index * 2 + 1;
                 let right_index = left_index + 1;
-                println!("{:?}-{:?}-{:?}", index, left_index, right_index);
+                // println!("{:?}-{:?}-{:?}", index, left_index, right_index);
                 sponge
                     .absorb(&tree[left_index * 243..(left_index + 1) * 243])
                     .unwrap();
@@ -121,7 +121,7 @@ where
             }
         }
 
-        println!("{:?}", tree[0..243].to_vec().trytes());
+        // println!("{:?}", tree[0..243].to_vec().trytes());
 
         MssV1PrivateKey {
             depth: self.depth,
@@ -151,13 +151,13 @@ where
     fn sign(&mut self, message: &[i8]) -> Self::Signature {
         let ots_private_key = &mut self.keys[self.index];
         let ots_signature = ots_private_key.sign(message);
-        println!("{:?}", ots_signature.size());
+        // println!("{:?}", ots_signature.size());
         let mut state = vec![0; ots_signature.size() + 6561];
         let mut tree_index = (1 << (self.depth - 1)) + self.index - 1;
         let mut sibling_index;
         let mut i = 0;
 
-        println!("{:?} - {:?}", self.index, tree_index);
+        // println!("{:?} - {:?}", self.index, tree_index);
 
         // TODO PAD TO 6561
         state[0..ots_signature.size()].copy_from_slice(ots_signature.to_bytes());
@@ -170,13 +170,13 @@ where
                 sibling_index = tree_index - 1;
                 tree_index = (tree_index - 1) / 2;
             }
-            println!(
-                "sibling {:?} {:?}",
-                sibling_index,
-                self.tree[sibling_index * 243..(sibling_index + 1) * 243]
-                    .to_vec()
-                    .trytes()
-            );
+            // println!(
+            //     "sibling {:?} {:?}",
+            //     sibling_index,
+            //     self.tree[sibling_index * 243..(sibling_index + 1) * 243]
+            //         .to_vec()
+            //         .trytes()
+            // );
             state[ots_signature.size() + i * 243..ots_signature.size() + (i + 1) * 243]
                 .copy_from_slice(&self.tree[sibling_index * 243..(sibling_index + 1) * 243]);
             i = i + 1;
@@ -207,14 +207,16 @@ impl<S, K> crate::PublicKey for MssV1PublicKey<S, K>
 where
     S: Sponge,
     K: PublicKey,
+    <K as PublicKey>::Signature: Signature + RecoverableSignature,
+    <<K as PublicKey>::Signature as RecoverableSignature>::PublicKey: PublicKey,
 {
     type Signature = MssV1Signature<S>;
 
     fn verify(&self, message: &[i8], signature: &Self::Signature) -> bool {
         let mut sponge = S::default();
-        println!("signature len {:?}", signature.state.len());
+        // println!("signature len {:?}", signature.state.len());
         // TODO From template type !!!
-        let ots_signature = WotsV1Signature::<S>::new(
+        let ots_signature = K::Signature::from_bytes(
             &signature.state[0..((signature.state.len() / 6561) - 1) * 6561],
         );
         let siblings = &signature.state.chunks(6561).last().unwrap();
@@ -230,9 +232,9 @@ where
                 break;
             }
 
-            println!("depth {:?} index {:?}", self.depth, i);
-            println!("hash {:?}", hash.trytes());
-            println!("sibling {:?}", sibling.trytes());
+            // println!("depth {:?} index {:?}", self.depth, i);
+            // println!("hash {:?}", hash.trytes());
+            // println!("sibling {:?}", sibling.trytes());
 
             if signature.index & j != 0 {
                 sponge.absorb(sibling).unwrap();
@@ -247,8 +249,8 @@ where
             j <<= 1;
         }
 
-        println!("rhs {:?}", hash.trytes());
-        println!("lhs {:?}", self.state.trytes());
+        // println!("rhs {:?}", hash.trytes());
+        // println!("lhs {:?}", self.state.trytes());
 
         all_equal(&hash, &self.state)
     }
@@ -318,7 +320,11 @@ mod tests {
         G: PrivateKeyGenerator,
         <G as PrivateKeyGenerator>::PrivateKey: PrivateKey,
         <<G as PrivateKeyGenerator>::PrivateKey as PrivateKey>::PublicKey: PublicKey,
-        <<G as PrivateKeyGenerator>::PrivateKey as PrivateKey>::Signature: Signature,
+        <<G as PrivateKeyGenerator>::PrivateKey as PrivateKey>::Signature:
+            Signature + RecoverableSignature,
+        <<<G as PrivateKeyGenerator>::PrivateKey as PrivateKey>::PublicKey as PublicKey>::Signature:
+            Signature + RecoverableSignature,
+        <<<<G as PrivateKeyGenerator>::PrivateKey as PrivateKey>::PublicKey as PublicKey>::Signature as RecoverableSignature>::PublicKey: PublicKey
     {
         const SEED: &str =
             "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN";
@@ -336,12 +342,12 @@ mod tests {
         for _ in 0..(1 << DEPTH - 1) {
             let mss_v1_signature = mss_v1_private_key.sign(seed_trits);
             let mss_v1_valid = mss_v1_public_key.verify(seed_trits, &mss_v1_signature);
-            println!("valid {:?}", mss_v1_valid);
+            // println!("valid {:?}", mss_v1_valid);
             assert!(mss_v1_valid);
             //  TODO invalid test
         }
 
-        println!("root {:?}", mss_v1_public_key.to_bytes().trytes());
+        // println!("root {:?}", mss_v1_public_key.to_bytes().trytes());
     }
 
     #[test]
@@ -372,29 +378,28 @@ mod tests {
         );
     }
 
-    // #[test]
-    // fn mss_v1_gen_curl_kerl_test() {
-    //     const SECURITY_LEVEL: u8 = 1;
-    //     let wots_v1_kerl_private_key_generator =
-    //         WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
-    //             .security_level(SECURITY_LEVEL)
-    //             .build()
-    //             .unwrap();
-    //     mss_v1_generic_gen_test::<Curl, WotsV1PrivateKeyGenerator<Kerl>>(
-    //         wots_v1_kerl_private_key_generator,
-    //     );
-    // }
-    //
-    // #[test]
-    // fn mss_v1_gen_kerl_curl_test() {
-    //     const SECURITY_LEVEL: u8 = 1;
-    //     let wots_v1_kerl_private_key_generator =
-    //         WotsV1PrivateKeyGeneratorBuilder::<Curl>::default()
-    //             .security_level(SECURITY_LEVEL)
-    //             .build()
-    //             .unwrap();
-    //     mss_v1_generic_gen_test::<Kerl, WotsV1PrivateKeyGenerator<Curl>>(
-    //         wots_v1_kerl_private_key_generator,
-    //     );
-    // }
+    #[test]
+    fn mss_v1_gen_curl_kerl_test() {
+        const SECURITY_LEVEL: u8 = 1;
+        let wots_v1_kerl_private_key_generator =
+            WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
+                .security_level(SECURITY_LEVEL)
+                .build()
+                .unwrap();
+        mss_v1_generic_gen_test::<Curl, WotsV1PrivateKeyGenerator<Kerl>>(
+            wots_v1_kerl_private_key_generator,
+        );
+    }
+    #[test]
+    fn mss_v1_gen_kerl_curl_test() {
+        const SECURITY_LEVEL: u8 = 1;
+        let wots_v1_kerl_private_key_generator =
+            WotsV1PrivateKeyGeneratorBuilder::<Curl>::default()
+                .security_level(SECURITY_LEVEL)
+                .build()
+                .unwrap();
+        mss_v1_generic_gen_test::<Kerl, WotsV1PrivateKeyGenerator<Curl>>(
+            wots_v1_kerl_private_key_generator,
+        );
+    }
 }
