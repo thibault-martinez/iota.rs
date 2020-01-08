@@ -35,6 +35,8 @@ pub trait Signature {
     fn size(&self) -> usize;
     // TODO: FROM/INTO instead ?
 
+    fn from_bytes(bytes: &[i8]) -> Self;
+
     fn to_bytes(&self) -> &[i8];
 }
 

@@ -258,6 +258,7 @@ where
     }
 }
 
+// TODO REMOVE
 impl<S: Sponge> MssV1Signature<S> {
     pub fn new(state: &[i8], index: usize) -> Self {
         Self {
@@ -272,6 +273,13 @@ impl<S: Sponge> MssV1Signature<S> {
 impl<S: Sponge> crate::Signature for MssV1Signature<S> {
     fn size(&self) -> usize {
         self.state.len()
+    }
+    fn from_bytes(bytes: &[i8]) -> Self {
+        Self {
+            state: bytes.to_vec(),
+            index: 0,
+            _sponge: PhantomData,
+        }
     }
     fn to_bytes(&self) -> &[i8] {
         &self.state
