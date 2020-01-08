@@ -157,18 +157,6 @@ impl<S: Sponge> crate::PublicKey for WotsV1PublicKey<S> {
     }
 }
 
-// TODO REMOVE
-impl<S: Sponge> WotsV1Signature<S> {
-    #[allow(dead_code)] // TODO
-    pub fn new(state: &[i8]) -> Self {
-        // TODO check size
-        Self {
-            state: state.to_vec(),
-            _sponge: PhantomData,
-        }
-    }
-}
-
 // TODO default impl ?
 impl<S: Sponge> crate::Signature for WotsV1Signature<S> {
     fn size(&self) -> usize {
