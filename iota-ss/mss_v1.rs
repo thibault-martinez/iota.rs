@@ -1,12 +1,14 @@
 use super::*;
 use iota_conversion::Trinary;
-use iota_crypto::{subseed, HashMode, Sponge};
+use iota_crypto::Sponge;
 use std::marker::PhantomData;
 use wots_v1::*;
 
 #[derive(Default)]
 pub struct MssV1PrivateKeyGeneratorBuilder<S, G> {
+    #[allow(dead_code)] // TODO
     depth: Option<usize>,
+    #[allow(dead_code)] // TODO
     generator: Option<G>,
     _sponge: PhantomData<S>,
 }
@@ -43,16 +45,19 @@ where
     S: Sponge,
     G: PrivateKeyGenerator,
 {
+    #[allow(dead_code)] // TODO
     pub fn depth(&mut self, depth: usize) -> &mut Self {
         self.depth.replace(depth);
         self
     }
 
+    #[allow(dead_code)] // TODO
     pub fn generator(&mut self, generator: G) -> &mut Self {
         self.generator.replace(generator);
         self
     }
 
+    #[allow(dead_code)] // TODO
     pub fn build(&mut self) -> MssV1PrivateKeyGenerator<S, G> {
         MssV1PrivateKeyGenerator {
             depth: self.depth.unwrap(),
@@ -72,11 +77,12 @@ where
 {
     type PrivateKey = MssV1PrivateKey<S, G::PrivateKey>;
 
-    fn generate(&self, seed: &[i8], index: usize) -> Self::PrivateKey {
+    fn generate(&self, seed: &[i8], _: usize) -> Self::PrivateKey {
         let mut sponge = S::default();
         let mut keys = Vec::new();
         let mut tree = vec![0; ((1 << self.depth) - 1) * 243];
 
+        // TODO: subseed
         // TODO: reserve ?
 
         for key_index in 0..(1 << (self.depth - 1)) {
@@ -220,7 +226,7 @@ where
 
         let mut j = 1;
         for (i, sibling) in siblings.chunks(243).enumerate() {
-            if (self.depth - 1 == i) {
+            if self.depth - 1 == i {
                 break;
             }
 
@@ -277,7 +283,7 @@ mod tests {
 
     use super::*;
     use iota_conversion::Trinary;
-    use iota_crypto::{Curl, Kerl};
+    use iota_crypto::Kerl;
 
     #[test]
     fn mss_v1_kerl_sec_3_test() {
@@ -320,7 +326,7 @@ mod tests {
         let mut mss_v1_private_key = mss_v1_private_key_generator.generate(seed_trits, 0);
         let mss_v1_public_key = mss_v1_private_key.generate_public_key();
 
-        for i in 0..(1 << DEPTH - 1) {
+        for _ in 0..(1 << DEPTH - 1) {
             let mss_v1_signature = mss_v1_private_key.sign(seed_trits);
             let mss_v1_valid = mss_v1_public_key.verify(seed_trits, &mss_v1_signature);
             println!("valid {:?}", mss_v1_valid);

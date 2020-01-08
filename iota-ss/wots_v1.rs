@@ -142,6 +142,8 @@ impl<S: Sponge> crate::PrivateKey for WotsV1PrivateKey<S> {
     }
 }
 
+/////////////////////////
+
 impl<S: Sponge> crate::PublicKey for WotsV1PublicKey<S> {
     type Signature = WotsV1Signature<S>;
 
@@ -175,8 +177,6 @@ impl<S: Sponge> crate::Signature for WotsV1Signature<S> {
         &self.state
     }
 }
-
-/////////////////////////
 
 impl<S: Sponge> crate::RecoverableSignature for WotsV1Signature<S> {
     type PublicKey = WotsV1PublicKey<S>;
