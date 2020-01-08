@@ -283,7 +283,7 @@ mod tests {
 
     use super::*;
     use iota_conversion::Trinary;
-    use iota_crypto::Kerl;
+    use iota_crypto::{Curl, Kerl};
 
     #[test]
     fn mss_v1_kerl_sec_3_test() {
@@ -303,26 +303,25 @@ mod tests {
         assert!(mss_v1_valid);
     }
 
-    #[test]
-    fn mss_v1_gen_test() {
+    fn mss_v1_generic_gen_test<S, G>(generator: G)
+    where
+        S: Sponge,
+        G: Default,
+        G: PrivateKeyGenerator,
+        <G as PrivateKeyGenerator>::PrivateKey: PrivateKey,
+        <<G as PrivateKeyGenerator>::PrivateKey as PrivateKey>::PublicKey: PublicKey,
+        <<G as PrivateKeyGenerator>::PrivateKey as PrivateKey>::Signature: Signature,
+    {
         const SEED: &str =
             "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN";
-        const SECURITY_LEVEL: u8 = 1;
-        const DEPTH: usize = 5;
-
+        const DEPTH: usize = 4;
         let seed_trits = &SEED.trits();
 
-        let wots_v1_kerl_private_key_generator =
-            WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
-                .security_level(SECURITY_LEVEL)
-                .build()
-                .unwrap();
         // todo try with not recover
-        let mss_v1_private_key_generator =
-            MssV1PrivateKeyGeneratorBuilder::<Kerl, WotsV1PrivateKeyGenerator<Kerl>>::default()
-                .depth(DEPTH)
-                .generator(wots_v1_kerl_private_key_generator)
-                .build();
+        let mss_v1_private_key_generator = MssV1PrivateKeyGeneratorBuilder::<S, G>::default()
+            .depth(DEPTH)
+            .generator(generator)
+            .build();
         let mut mss_v1_private_key = mss_v1_private_key_generator.generate(seed_trits, 0);
         let mss_v1_public_key = mss_v1_private_key.generate_public_key();
 
@@ -331,8 +330,63 @@ mod tests {
             let mss_v1_valid = mss_v1_public_key.verify(seed_trits, &mss_v1_signature);
             println!("valid {:?}", mss_v1_valid);
             assert!(mss_v1_valid);
+            //  TODO invalid test
         }
 
         println!("root {:?}", mss_v1_public_key.to_bytes().trytes());
     }
+
+    #[test]
+    fn mss_v1_gen_kerl_kerl_test() {
+        const SECURITY_LEVEL: u8 = 1;
+
+        let wots_v1_kerl_private_key_generator =
+            WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
+                .security_level(SECURITY_LEVEL)
+                .build()
+                .unwrap();
+        mss_v1_generic_gen_test::<Kerl, WotsV1PrivateKeyGenerator<Kerl>>(
+            wots_v1_kerl_private_key_generator,
+        );
+    }
+
+    #[test]
+    fn mss_v1_gen_curl_curl_test() {
+        const SECURITY_LEVEL: u8 = 1;
+
+        let wots_v1_kerl_private_key_generator =
+            WotsV1PrivateKeyGeneratorBuilder::<Curl>::default()
+                .security_level(SECURITY_LEVEL)
+                .build()
+                .unwrap();
+        mss_v1_generic_gen_test::<Curl, WotsV1PrivateKeyGenerator<Curl>>(
+            wots_v1_kerl_private_key_generator,
+        );
+    }
+
+    // #[test]
+    // fn mss_v1_gen_curl_kerl_test() {
+    //     const SECURITY_LEVEL: u8 = 1;
+    //     let wots_v1_kerl_private_key_generator =
+    //         WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
+    //             .security_level(SECURITY_LEVEL)
+    //             .build()
+    //             .unwrap();
+    //     mss_v1_generic_gen_test::<Curl, WotsV1PrivateKeyGenerator<Kerl>>(
+    //         wots_v1_kerl_private_key_generator,
+    //     );
+    // }
+    //
+    // #[test]
+    // fn mss_v1_gen_kerl_curl_test() {
+    //     const SECURITY_LEVEL: u8 = 1;
+    //     let wots_v1_kerl_private_key_generator =
+    //         WotsV1PrivateKeyGeneratorBuilder::<Curl>::default()
+    //             .security_level(SECURITY_LEVEL)
+    //             .build()
+    //             .unwrap();
+    //     mss_v1_generic_gen_test::<Kerl, WotsV1PrivateKeyGenerator<Curl>>(
+    //         wots_v1_kerl_private_key_generator,
+    //     );
+    // }
 }
