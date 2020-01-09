@@ -68,13 +68,9 @@ impl<S: Sponge> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
         let mut state = vec![0; self.security_level as usize * 6561];
 
         sponge.absorb(&subseed).unwrap();
-
-        for s in 0..self.security_level {
-            sponge
-                .squeeze(&mut state[s as usize * 6561..(s as usize + 1) * 6561])
-                .unwrap();
-        }
-
+        sponge
+            .squeeze(&mut state[0..self.security_level as usize * 6561])
+            .unwrap();
         sponge.reset();
 
         Self::PrivateKey {
@@ -203,6 +199,7 @@ impl<S: Sponge> crate::RecoverableSignature for WotsV1Signature<S> {
             sponge.absorb(&chunk).unwrap();
             sponge.squeeze(&mut hash).unwrap();
             sponge.reset();
+            // TODO do not extend
             digests.extend_from_slice(&hash);
         }
 
