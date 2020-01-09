@@ -183,7 +183,7 @@ impl<S: Sponge> crate::RecoverableSignature for WotsV1Signature<S> {
         let mut sponge = S::default();
         let mut hash = [0; 243];
         let mut state = self.state.clone();
-        let mut digests = Vec::new();
+        let mut digests = vec![0; (self.state.len() / 6561) * 243];
 
         for (i, chunk) in state.chunks_mut(243).enumerate() {
             let val = message[i * 3] + message[i * 3 + 1] * 3 + message[i * 3 + 2] * 9;
@@ -195,12 +195,12 @@ impl<S: Sponge> crate::RecoverableSignature for WotsV1Signature<S> {
             }
         }
 
-        for chunk in state.chunks_mut(6561) {
+        for (i, chunk) in state.chunks_mut(6561).enumerate() {
             sponge.absorb(&chunk).unwrap();
-            sponge.squeeze(&mut hash).unwrap();
+            sponge
+                .squeeze(&mut digests[i * 243..(i + 1) * 243])
+                .unwrap();
             sponge.reset();
-            // TODO do not extend
-            digests.extend_from_slice(&hash);
         }
 
         sponge.absorb(&digests).unwrap();
