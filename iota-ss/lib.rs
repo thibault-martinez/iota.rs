@@ -25,7 +25,10 @@ pub trait PublicKey {
     type Signature;
 
     fn verify(&self, message: &[i8], signature: &Self::Signature) -> bool;
+
     // TODO: FROM/INTO instead ?
+
+    fn from_bytes(bytes: &[i8]) -> Self;
 
     fn to_bytes(&self) -> &[i8];
 }
@@ -33,6 +36,7 @@ pub trait PublicKey {
 // TODO: documentation
 pub trait Signature {
     fn size(&self) -> usize;
+
     // TODO: FROM/INTO instead ?
 
     fn from_bytes(bytes: &[i8]) -> Self;

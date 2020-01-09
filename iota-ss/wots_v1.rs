@@ -152,6 +152,13 @@ impl<S: Sponge> crate::PublicKey for WotsV1PublicKey<S> {
         all_equal(&signature.recover_public_key(message).state, &self.state)
     }
 
+    fn from_bytes(bytes: &[i8]) -> Self {
+        Self {
+            state: bytes.to_vec(),
+            _sponge: PhantomData,
+        }
+    }
+
     fn to_bytes(&self) -> &[i8] {
         &self.state
     }
