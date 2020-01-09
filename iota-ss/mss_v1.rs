@@ -165,7 +165,7 @@ where
 
         self.index = self.index + 1;
 
-        MssV1Signature::new(&state, self.index - 1)
+        MssV1Signature::from_bytes(&state).index(self.index - 1)
     }
 }
 
@@ -232,14 +232,10 @@ where
     }
 }
 
-// TODO REMOVE
 impl<S: Sponge> MssV1Signature<S> {
-    pub fn new(state: &[i8], index: usize) -> Self {
-        Self {
-            state: state.to_vec(),
-            index: index,
-            _sponge: PhantomData,
-        }
+    pub fn index(mut self, index: usize) -> Self {
+        self.index = index;
+        self
     }
 }
 
@@ -279,7 +275,7 @@ mod tests {
 
         let mss_v1_public_key =
             MssV1PublicKey::<Kerl, WotsV1PublicKey<Kerl>>::new(&PUBLIC_KEY.trits(), DEPTH);
-        let mss_v1_signature = MssV1Signature::<Kerl>::new(&SIGNATURE.trits(), INDEX);
+        let mss_v1_signature = MssV1Signature::<Kerl>::from_bytes(&SIGNATURE.trits()).index(INDEX);
         let mss_v1_valid = mss_v1_public_key.verify(&HASH.trits(), &mss_v1_signature);
 
         assert!(mss_v1_valid);
