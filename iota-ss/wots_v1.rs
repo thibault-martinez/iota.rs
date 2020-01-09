@@ -285,7 +285,6 @@ mod tests {
                 let mut private_key = private_key_generator.generate(&seed_trits, index);
                 let public_key = private_key.generate_public_key();
                 let bytes = public_key.to_bytes();
-                // println!("{:?}", public_key.to_bytes().trytes());
                 let signature = private_key.sign(seed_trits);
                 let recovered_public_key = signature.recover_public_key(seed_trits);
                 assert!(all_equal(
