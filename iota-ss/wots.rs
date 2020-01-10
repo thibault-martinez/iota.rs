@@ -274,7 +274,7 @@ mod tests {
     }
 
     fn wots_generic_complete_test<S: Sponge + Default>() {
-        let seed = Seed::from_bytes(&SEED.trits());
+        let seed = Seed::from_bytes(&SEED.trits()).unwrap();
 
         for security in 1..4 {
             for index in 0..5 {

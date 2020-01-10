@@ -359,7 +359,7 @@ mod tests {
             "CHXHLHQLOPYP9NSUXTMWWABIBSBLUFXFRNWOZXJPVJPBCIDI99YBSCFYILCHPXHTSEYSYWIGQFERCRVDD";
         const DEPTH: u8 = 4;
 
-        let seed = Seed::from_bytes(&SEED.trits());
+        let seed = Seed::from_bytes(&SEED.trits()).unwrap();
         // todo try with not recover
         let mss_private_key_generator = MssPrivateKeyGeneratorBuilder::<S, G>::default()
             .depth(DEPTH)
