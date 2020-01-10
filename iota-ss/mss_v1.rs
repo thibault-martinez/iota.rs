@@ -217,7 +217,7 @@ where
             j <<= 1;
         }
 
-        all_equal(&hash, &self.state)
+        slice_eq(&hash, &self.state)
     }
 
     fn from_bytes(bytes: &[i8]) -> Self {

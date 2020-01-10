@@ -142,7 +142,7 @@ impl<S: Sponge + Default> crate::PublicKey for WotsV1PublicKey<S> {
 
     // TODO: enforce hash size ?
     fn verify(&self, message: &[i8], signature: &Self::Signature) -> bool {
-        all_equal(&signature.recover_public_key(message).state, &self.state)
+        slice_eq(&signature.recover_public_key(message).state, &self.state)
     }
 
     fn from_bytes(bytes: &[i8]) -> Self {
@@ -288,7 +288,7 @@ mod tests {
                 let bytes = public_key.to_bytes();
                 let signature = private_key.sign(seed_trits);
                 let recovered_public_key = signature.recover_public_key(seed_trits);
-                assert!(all_equal(
+                assert!(slice_eq(
                     public_key.to_bytes(),
                     recovered_public_key.to_bytes()
                 ));
