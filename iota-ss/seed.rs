@@ -11,17 +11,22 @@ impl Seed {
         // TODO Replace with bee impl when available
         let subseed = subseed(HashMode::Kerl, &self.0, index as usize).unwrap();
 
-        Seed::from_bytes(&subseed).unwrap()
+        Self::from_bytes_unchecked(&subseed)
     }
 
     // TODO String ?
     pub fn from_bytes(bytes: &[i8]) -> Result<Self, String> {
+        // TODO Check bytes
+
+        Ok(Self::from_bytes_unchecked(bytes))
+    }
+
+    fn from_bytes_unchecked(bytes: &[i8]) -> Self {
         let mut seed = [0; 243];
 
-        // TODO Check bytes
         seed.copy_from_slice(bytes);
 
-        Ok(Seed(seed))
+        Seed(seed)
     }
 
     pub fn to_bytes(&self) -> &[i8] {
