@@ -34,7 +34,7 @@ pub struct WotsV1Signature<S> {
     _sponge: PhantomData<S>,
 }
 
-impl<S: Sponge> WotsV1PrivateKeyGeneratorBuilder<S> {
+impl<S: Sponge + Default> WotsV1PrivateKeyGeneratorBuilder<S> {
     #[allow(dead_code)] // TODO
     pub fn security_level(&mut self, security_level: u8) -> &mut Self {
         self.security_level = Some(security_level);
@@ -56,7 +56,7 @@ impl<S: Sponge> WotsV1PrivateKeyGeneratorBuilder<S> {
     }
 }
 
-impl<S: Sponge> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
+impl<S: Sponge + Default> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
     type PrivateKey = WotsV1PrivateKey<S>;
 
     // TODO validate seed + tests
@@ -80,7 +80,7 @@ impl<S: Sponge> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
     }
 }
 
-impl<S: Sponge> crate::PrivateKey for WotsV1PrivateKey<S> {
+impl<S: Sponge + Default> crate::PrivateKey for WotsV1PrivateKey<S> {
     type PublicKey = WotsV1PublicKey<S>;
     type Signature = WotsV1Signature<S>;
 
@@ -140,7 +140,7 @@ impl<S: Sponge> crate::PrivateKey for WotsV1PrivateKey<S> {
 
 /////////////////////////
 
-impl<S: Sponge> crate::PublicKey for WotsV1PublicKey<S> {
+impl<S: Sponge + Default> crate::PublicKey for WotsV1PublicKey<S> {
     type Signature = WotsV1Signature<S>;
 
     // TODO: enforce hash size ?
@@ -161,7 +161,7 @@ impl<S: Sponge> crate::PublicKey for WotsV1PublicKey<S> {
 }
 
 // TODO default impl ?
-impl<S: Sponge> crate::Signature for WotsV1Signature<S> {
+impl<S: Sponge + Default> crate::Signature for WotsV1Signature<S> {
     fn size(&self) -> usize {
         self.state.len()
     }
@@ -176,7 +176,7 @@ impl<S: Sponge> crate::Signature for WotsV1Signature<S> {
     }
 }
 
-impl<S: Sponge> crate::RecoverableSignature for WotsV1Signature<S> {
+impl<S: Sponge + Default> crate::RecoverableSignature for WotsV1Signature<S> {
     type PublicKey = WotsV1PublicKey<S>;
 
     fn recover_public_key(&self, message: &[i8]) -> Self::PublicKey {
@@ -276,7 +276,7 @@ mod tests {
         );
     }
 
-    fn wots_v1_generic_complete_test<S: Sponge>() {
+    fn wots_v1_generic_complete_test<S: Sponge + Default>() {
         let seed_trits = &SEED.trits();
 
         for security in 1..4 {

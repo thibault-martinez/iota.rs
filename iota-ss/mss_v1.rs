@@ -42,7 +42,7 @@ pub struct MssV1Signature<S> {
 
 impl<S, G> MssV1PrivateKeyGeneratorBuilder<S, G>
 where
-    S: Sponge,
+    S: Sponge + Default,
     G: PrivateKeyGenerator,
 {
     #[allow(dead_code)] // TODO
@@ -70,7 +70,7 @@ where
 
 impl<S, G> crate::PrivateKeyGenerator for MssV1PrivateKeyGenerator<S, G>
 where
-    S: Sponge,
+    S: Sponge + Default,
     G: PrivateKeyGenerator,
     <G as PrivateKeyGenerator>::PrivateKey: PrivateKey,
     <<G as PrivateKeyGenerator>::PrivateKey as PrivateKey>::PublicKey: PublicKey,
@@ -125,7 +125,7 @@ where
 
 impl<S, K> crate::PrivateKey for MssV1PrivateKey<S, K>
 where
-    S: Sponge,
+    S: Sponge + Default,
     K: PrivateKey,
     <K as PrivateKey>::PublicKey: PublicKey,
     <K as PrivateKey>::Signature: Signature,
@@ -174,7 +174,7 @@ where
 
 impl<S, K> MssV1PublicKey<S, K>
 where
-    S: Sponge,
+    S: Sponge + Default,
     K: PublicKey,
 {
     pub fn depth(mut self, depth: usize) -> Self {
@@ -185,7 +185,7 @@ where
 
 impl<S, K> crate::PublicKey for MssV1PublicKey<S, K>
 where
-    S: Sponge,
+    S: Sponge + Default,
     K: PublicKey,
     <K as PublicKey>::Signature: Signature + RecoverableSignature,
     <<K as PublicKey>::Signature as RecoverableSignature>::PublicKey: PublicKey,
@@ -240,7 +240,7 @@ where
     }
 }
 
-impl<S: Sponge> MssV1Signature<S> {
+impl<S: Sponge + Default> MssV1Signature<S> {
     pub fn index(mut self, index: usize) -> Self {
         self.index = index;
         self
@@ -248,7 +248,7 @@ impl<S: Sponge> MssV1Signature<S> {
 }
 
 // TODO default impl ?
-impl<S: Sponge> crate::Signature for MssV1Signature<S> {
+impl<S: Sponge + Default> crate::Signature for MssV1Signature<S> {
     fn size(&self) -> usize {
         self.state.len()
     }
@@ -350,7 +350,7 @@ mod tests {
 
     fn mss_v1_generic_gen_test<S, G>(generator: G)
     where
-        S: Sponge,
+        S: Sponge + Default,
         G: Default,
         G: PrivateKeyGenerator,
         <G as PrivateKeyGenerator>::PrivateKey: PrivateKey,
