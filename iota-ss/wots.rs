@@ -7,42 +7,42 @@ use std::marker::PhantomData;
 // TODO constants
 
 #[derive(Default)]
-pub struct WotsV1PrivateKeyGeneratorBuilder<S> {
+pub struct WotsPrivateKeyGeneratorBuilder<S> {
     security_level: Option<u8>,
     _sponge: PhantomData<S>,
 }
 
 #[derive(Default, Debug)]
-pub struct WotsV1PrivateKeyGenerator<S> {
+pub struct WotsPrivateKeyGenerator<S> {
     security_level: u8,
     _sponge: PhantomData<S>,
 }
 
-pub struct WotsV1PrivateKey<S> {
+pub struct WotsPrivateKey<S> {
     state: Vec<i8>,
     _sponge: PhantomData<S>,
 }
 
-pub struct WotsV1PublicKey<S> {
+pub struct WotsPublicKey<S> {
     state: Vec<i8>,
     _sponge: PhantomData<S>,
 }
 
-pub struct WotsV1Signature<S> {
+pub struct WotsSignature<S> {
     state: Vec<i8>,
     _sponge: PhantomData<S>,
 }
 
-impl<S: Sponge + Default> WotsV1PrivateKeyGeneratorBuilder<S> {
+impl<S: Sponge + Default> WotsPrivateKeyGeneratorBuilder<S> {
     pub fn security_level(&mut self, security_level: u8) -> &mut Self {
         self.security_level = Some(security_level);
         self
     }
 
-    pub fn build(&mut self) -> Result<WotsV1PrivateKeyGenerator<S>, String> {
+    pub fn build(&mut self) -> Result<WotsPrivateKeyGenerator<S>, String> {
         match self.security_level {
             Some(security_level) => match security_level {
-                1 | 2 | 3 => Ok(WotsV1PrivateKeyGenerator {
+                1 | 2 | 3 => Ok(WotsPrivateKeyGenerator {
                     security_level: security_level,
                     _sponge: PhantomData,
                 }),
@@ -53,8 +53,8 @@ impl<S: Sponge + Default> WotsV1PrivateKeyGeneratorBuilder<S> {
     }
 }
 
-impl<S: Sponge + Default> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
-    type PrivateKey = WotsV1PrivateKey<S>;
+impl<S: Sponge + Default> crate::PrivateKeyGenerator for WotsPrivateKeyGenerator<S> {
+    type PrivateKey = WotsPrivateKey<S>;
 
     fn generate(&self, seed: &Seed, index: u64) -> Self::PrivateKey {
         let subseed = seed.subseed(index);
@@ -74,9 +74,9 @@ impl<S: Sponge + Default> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerat
     }
 }
 
-impl<S: Sponge + Default> crate::PrivateKey for WotsV1PrivateKey<S> {
-    type PublicKey = WotsV1PublicKey<S>;
-    type Signature = WotsV1Signature<S>;
+impl<S: Sponge + Default> crate::PrivateKey for WotsPrivateKey<S> {
+    type PublicKey = WotsPublicKey<S>;
+    type Signature = WotsSignature<S>;
 
     fn generate_public_key(&self) -> Self::PublicKey {
         let mut sponge = S::default();
@@ -134,8 +134,8 @@ impl<S: Sponge + Default> crate::PrivateKey for WotsV1PrivateKey<S> {
 
 /////////////////////////
 
-impl<S: Sponge + Default> crate::PublicKey for WotsV1PublicKey<S> {
-    type Signature = WotsV1Signature<S>;
+impl<S: Sponge + Default> crate::PublicKey for WotsPublicKey<S> {
+    type Signature = WotsSignature<S>;
 
     // TODO: enforce hash size ?
     fn verify(&self, message: &[i8], signature: &Self::Signature) -> bool {
@@ -155,7 +155,7 @@ impl<S: Sponge + Default> crate::PublicKey for WotsV1PublicKey<S> {
 }
 
 // TODO default impl ?
-impl<S: Sponge + Default> crate::Signature for WotsV1Signature<S> {
+impl<S: Sponge + Default> crate::Signature for WotsSignature<S> {
     fn size(&self) -> usize {
         self.state.len()
     }
@@ -170,8 +170,8 @@ impl<S: Sponge + Default> crate::Signature for WotsV1Signature<S> {
     }
 }
 
-impl<S: Sponge + Default> crate::RecoverableSignature for WotsV1Signature<S> {
-    type PublicKey = WotsV1PublicKey<S>;
+impl<S: Sponge + Default> crate::RecoverableSignature for WotsSignature<S> {
+    type PublicKey = WotsPublicKey<S>;
 
     fn recover_public_key(&self, message: &[i8]) -> Self::PublicKey {
         let mut sponge = S::default();
@@ -221,9 +221,9 @@ mod tests {
         "CHXHLHQLOPYP9NSUXTMWWABIBSBLUFXFRNWOZXJPVJPBCIDI99YBSCFYILCHPXHTSEYSYWIGQFERCRVDD";
 
     #[test]
-    fn wots_v1_generator_missing_security_level_test() {
+    fn wots_generator_missing_security_level_test() {
         assert_eq!(
-            WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
+            WotsPrivateKeyGeneratorBuilder::<Kerl>::default()
                 .build()
                 .unwrap_err(),
             "Security level has not been set"
@@ -231,16 +231,16 @@ mod tests {
     }
 
     #[test]
-    fn wots_v1_generator_invalid_security_level_test() {
+    fn wots_generator_invalid_security_level_test() {
         assert_eq!(
-            WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
+            WotsPrivateKeyGeneratorBuilder::<Kerl>::default()
                 .security_level(0)
                 .build()
                 .unwrap_err(),
             "Invalid security level, possible values are 1, 2 or 3"
         );
         assert_eq!(
-            WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
+            WotsPrivateKeyGeneratorBuilder::<Kerl>::default()
                 .security_level(4)
                 .build()
                 .unwrap_err(),
@@ -249,23 +249,23 @@ mod tests {
     }
 
     #[test]
-    fn wots_v1_generator_valid_test() {
+    fn wots_generator_valid_test() {
         assert_eq!(
-            WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
+            WotsPrivateKeyGeneratorBuilder::<Kerl>::default()
                 .security_level(1)
                 .build()
                 .is_ok(),
             true
         );
         assert_eq!(
-            WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
+            WotsPrivateKeyGeneratorBuilder::<Kerl>::default()
                 .security_level(2)
                 .build()
                 .is_ok(),
             true
         );
         assert_eq!(
-            WotsV1PrivateKeyGeneratorBuilder::<Kerl>::default()
+            WotsPrivateKeyGeneratorBuilder::<Kerl>::default()
                 .security_level(3)
                 .build()
                 .is_ok(),
@@ -273,12 +273,12 @@ mod tests {
         );
     }
 
-    fn wots_v1_generic_complete_test<S: Sponge + Default>() {
+    fn wots_generic_complete_test<S: Sponge + Default>() {
         let seed = Seed::from_bytes(&SEED.trits());
 
         for security in 1..4 {
             for index in 0..5 {
-                let private_key_generator = WotsV1PrivateKeyGeneratorBuilder::<S>::default()
+                let private_key_generator = WotsPrivateKeyGeneratorBuilder::<S>::default()
                     .security_level(security)
                     .build()
                     .unwrap();
@@ -299,11 +299,11 @@ mod tests {
     }
 
     #[test]
-    fn wots_v1_kerl_complete_test() {
-        wots_v1_generic_complete_test::<Kerl>();
+    fn wots_kerl_complete_test() {
+        wots_generic_complete_test::<Kerl>();
     }
     #[test]
-    fn wots_v1_curl_complete_test() {
-        wots_v1_generic_complete_test::<Curl>();
+    fn wots_curl_complete_test() {
+        wots_generic_complete_test::<Curl>();
     }
 }

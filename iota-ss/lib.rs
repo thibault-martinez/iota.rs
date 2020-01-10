@@ -1,7 +1,7 @@
 // pub mod ed25519;
-pub mod mss_v1;
+pub mod mss;
 pub mod seed;
-pub mod wots_v1;
+pub mod wots;
 
 pub use seed::Seed;
 
