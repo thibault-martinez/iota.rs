@@ -1,12 +1,15 @@
 // pub mod ed25519;
 pub mod mss_v1;
+pub mod seed;
 pub mod wots_v1;
+
+pub use seed::Seed;
 
 // TODO: documentation
 pub trait PrivateKeyGenerator {
     type PrivateKey;
 
-    fn generate(&self, seed: &[i8], index: u64) -> Self::PrivateKey;
+    fn generate(&self, seed: &Seed, index: u64) -> Self::PrivateKey;
 }
 
 // TODO: documentation

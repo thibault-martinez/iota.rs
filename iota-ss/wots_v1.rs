@@ -56,12 +56,10 @@ impl<S: Sponge + Default> WotsV1PrivateKeyGeneratorBuilder<S> {
 impl<S: Sponge + Default> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerator<S> {
     type PrivateKey = WotsV1PrivateKey<S>;
 
-    // TODO validate seed + tests
-    // TODO type of index ?
-    fn generate(&self, seed: &[i8], index: u64) -> Self::PrivateKey {
+    fn generate(&self, seed: &Seed, index: u64) -> Self::PrivateKey {
         let mut sponge = S::default();
         // TODO replace with custom impl
-        let subseed = subseed(HashMode::Kerl, &seed, index as usize).unwrap();
+        let subseed = subseed(HashMode::Kerl, seed.to_bytes(), index as usize).unwrap();
         let mut state = vec![0; self.security_level as usize * 6561];
 
         sponge.absorb(&subseed).unwrap();
@@ -217,8 +215,11 @@ mod tests {
     use super::*;
     use iota_conversion::Trinary;
     use iota_crypto::{Curl, Kerl};
+
     const SEED: &str =
         "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN";
+    const MESSAGE: &str =
+        "CHXHLHQLOPYP9NSUXTMWWABIBSBLUFXFRNWOZXJPVJPBCIDI99YBSCFYILCHPXHTSEYSYWIGQFERCRVDD";
 
     #[test]
     fn wots_v1_generator_missing_security_level_test() {
@@ -274,7 +275,7 @@ mod tests {
     }
 
     fn wots_v1_generic_complete_test<S: Sponge + Default>() {
-        let seed_trits = &SEED.trits();
+        let seed = Seed::from_bytes(&SEED.trits());
 
         for security in 1..4 {
             for index in 0..5 {
@@ -283,16 +284,16 @@ mod tests {
                     .build()
                     .unwrap();
                 // TODO mut ?
-                let mut private_key = private_key_generator.generate(&seed_trits, index);
+                let mut private_key = private_key_generator.generate(&seed, index);
                 let public_key = private_key.generate_public_key();
                 let bytes = public_key.to_bytes();
-                let signature = private_key.sign(seed_trits);
-                let recovered_public_key = signature.recover_public_key(seed_trits);
+                let signature = private_key.sign(&MESSAGE.trits());
+                let recovered_public_key = signature.recover_public_key(&MESSAGE.trits());
                 assert!(slice_eq(
                     public_key.to_bytes(),
                     recovered_public_key.to_bytes()
                 ));
-                let valid = public_key.verify(seed_trits, &signature);
+                let valid = public_key.verify(&MESSAGE.trits(), &signature);
                 assert!(valid);
             }
         }

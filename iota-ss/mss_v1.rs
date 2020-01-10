@@ -72,7 +72,7 @@ where
 {
     type PrivateKey = MssV1PrivateKey<S, G::PrivateKey>;
 
-    fn generate(&self, seed: &[i8], _: u64) -> Self::PrivateKey {
+    fn generate(&self, seed: &Seed, _: u64) -> Self::PrivateKey {
         let mut sponge = S::default();
         let mut keys = Vec::new();
         let mut tree = vec![0; ((1 << self.depth) - 1) * 243];
@@ -358,20 +358,22 @@ mod tests {
     {
         const SEED: &str =
             "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN";
+        const MESSAGE: &str =
+            "CHXHLHQLOPYP9NSUXTMWWABIBSBLUFXFRNWOZXJPVJPBCIDI99YBSCFYILCHPXHTSEYSYWIGQFERCRVDD";
         const DEPTH: u8 = 4;
-        let seed_trits = &SEED.trits();
 
+        let seed = Seed::from_bytes(&SEED.trits());
         // todo try with not recover
         let mss_v1_private_key_generator = MssV1PrivateKeyGeneratorBuilder::<S, G>::default()
             .depth(DEPTH)
             .generator(generator)
             .build();
-        let mut mss_v1_private_key = mss_v1_private_key_generator.generate(seed_trits, 0);
+        let mut mss_v1_private_key = mss_v1_private_key_generator.generate(&seed, 0);
         let mss_v1_public_key = mss_v1_private_key.generate_public_key();
 
         for _ in 0..(1 << DEPTH - 1) {
-            let mss_v1_signature = mss_v1_private_key.sign(seed_trits);
-            let mss_v1_valid = mss_v1_public_key.verify(seed_trits, &mss_v1_signature);
+            let mss_v1_signature = mss_v1_private_key.sign(&MESSAGE.trits());
+            let mss_v1_valid = mss_v1_public_key.verify(&MESSAGE.trits(), &mss_v1_signature);
             assert!(mss_v1_valid);
             //  TODO invalid test
         }
