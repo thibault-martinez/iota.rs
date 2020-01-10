@@ -1,6 +1,6 @@
 // TODO clean use
 use super::*;
-use iota_crypto::{subseed, HashMode, Sponge};
+use iota_crypto::Sponge;
 use std::marker::PhantomData;
 
 // TODO state as Vec<i8> ?
@@ -57,12 +57,11 @@ impl<S: Sponge + Default> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerat
     type PrivateKey = WotsV1PrivateKey<S>;
 
     fn generate(&self, seed: &Seed, index: u64) -> Self::PrivateKey {
+        let subseed = seed.subseed(index);
         let mut sponge = S::default();
-        // TODO replace with custom impl
-        let subseed = subseed(HashMode::Kerl, seed.to_bytes(), index as usize).unwrap();
         let mut state = vec![0; self.security_level as usize * 6561];
 
-        sponge.absorb(&subseed).unwrap();
+        sponge.absorb(&subseed.to_bytes()).unwrap();
         sponge
             .squeeze(&mut state[0..self.security_level as usize * 6561])
             .unwrap();

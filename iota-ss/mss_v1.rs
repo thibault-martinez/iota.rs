@@ -1,5 +1,4 @@
 use super::*;
-use iota_conversion::Trinary;
 use iota_crypto::Sponge;
 use std::marker::PhantomData;
 use wots_v1::*;
