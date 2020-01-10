@@ -6,7 +6,7 @@ pub mod wots_v1;
 pub trait PrivateKeyGenerator {
     type PrivateKey;
 
-    fn generate(&self, seed: &[i8], index: usize) -> Self::PrivateKey;
+    fn generate(&self, seed: &[i8], index: u64) -> Self::PrivateKey;
 }
 
 // TODO: documentation

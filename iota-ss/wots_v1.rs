@@ -58,10 +58,10 @@ impl<S: Sponge + Default> crate::PrivateKeyGenerator for WotsV1PrivateKeyGenerat
 
     // TODO validate seed + tests
     // TODO type of index ?
-    fn generate(&self, seed: &[i8], index: usize) -> Self::PrivateKey {
+    fn generate(&self, seed: &[i8], index: u64) -> Self::PrivateKey {
         let mut sponge = S::default();
         // TODO replace with custom impl
-        let subseed = subseed(HashMode::Kerl, &seed, index).unwrap();
+        let subseed = subseed(HashMode::Kerl, &seed, index as usize).unwrap();
         let mut state = vec![0; self.security_level as usize * 6561];
 
         sponge.absorb(&subseed).unwrap();
