@@ -1,6 +1,6 @@
-// mod ed25519;
-mod mss_v1;
-mod wots_v1;
+// pub mod ed25519;
+pub mod mss_v1;
+pub mod wots_v1;
 
 // TODO: documentation
 pub trait PrivateKeyGenerator {

@@ -8,7 +8,6 @@ use std::marker::PhantomData;
 
 #[derive(Default)]
 pub struct WotsV1PrivateKeyGeneratorBuilder<S> {
-    #[allow(dead_code)] // TODO
     security_level: Option<u8>,
     _sponge: PhantomData<S>,
 }
@@ -35,13 +34,11 @@ pub struct WotsV1Signature<S> {
 }
 
 impl<S: Sponge + Default> WotsV1PrivateKeyGeneratorBuilder<S> {
-    #[allow(dead_code)] // TODO
     pub fn security_level(&mut self, security_level: u8) -> &mut Self {
         self.security_level = Some(security_level);
         self
     }
 
-    #[allow(dead_code)] // TODO
     pub fn build(&mut self) -> Result<WotsV1PrivateKeyGenerator<S>, String> {
         match self.security_level {
             Some(security_level) => match security_level {

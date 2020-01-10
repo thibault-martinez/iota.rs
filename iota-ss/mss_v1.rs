@@ -6,9 +6,7 @@ use wots_v1::*;
 
 #[derive(Default)]
 pub struct MssV1PrivateKeyGeneratorBuilder<S, G> {
-    #[allow(dead_code)] // TODO
     depth: Option<usize>,
-    #[allow(dead_code)] // TODO
     generator: Option<G>,
     _sponge: PhantomData<S>,
 }
@@ -45,19 +43,16 @@ where
     S: Sponge + Default,
     G: PrivateKeyGenerator,
 {
-    #[allow(dead_code)] // TODO
     pub fn depth(&mut self, depth: usize) -> &mut Self {
         self.depth.replace(depth);
         self
     }
 
-    #[allow(dead_code)] // TODO
     pub fn generator(&mut self, generator: G) -> &mut Self {
         self.generator.replace(generator);
         self
     }
 
-    #[allow(dead_code)] // TODO
     pub fn build(&mut self) -> MssV1PrivateKeyGenerator<S, G> {
         MssV1PrivateKeyGenerator {
             depth: self.depth.unwrap(),
