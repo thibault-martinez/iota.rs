@@ -1,16 +1,16 @@
 [package]
-name = "iota-ss"
-version = "0.0.0"
+name = "bee-signing-scheme"
+version = "0.1.0"
 edition = "2018"
-license = "MIT"
+authors = ["Thibault Martinez <thibault@iota.org>"]
+license = "Apache-2.0"
 
 [lib]
-name = "iota_ss"
+name = "bee_signing_scheme"
 path = "lib.rs"
 
 [dependencies]
 rand = "0.7"
 iota-crypto = { version = "0.3.0", path = "../iota-crypto" }
 iota-conversion = { version = "0.3.0", path = "../iota-conversion" }
-[dependencies.ed25519-dalek]
-version = "1.0.0-pre.3"
+ed25519-dalek = { version = "1.0.0-pre.3" }
