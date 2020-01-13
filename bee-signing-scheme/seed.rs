@@ -84,7 +84,7 @@ mod tests {
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9ABCDEFGHIJKLMNOPQRSTUVWXYZ9";
 
     fn seed_subseed_generic_test<S: Sponge + Default>(seed_string: &str, subseed_strings: &[&str]) {
-        let seed = Seed::from_bytes(&SEED.trits()).unwrap();
+        let seed = Seed::from_bytes(&seed_string.trits()).unwrap();
 
         for (i, subseed_string) in subseed_strings.iter().enumerate() {
             let subseed = seed.subseed::<S>(i as u64);
@@ -112,6 +112,7 @@ mod tests {
         );
     }
 
+    // TODO Will be activated when Curl27 is a proper type
     // #[test]
     // fn seed_subseed_curl27_test() {
     //     seed_subseed_generic_test::<Curl>(
@@ -148,5 +149,17 @@ mod tests {
                 "JXCAHDZVVCMGIGWJFFVDRFCHKBVAWTSLWIPZYGBECFXJQPDNDYJTEYCBHSRPDMPFEPWZUMDEIPIBW9SI9",
             ],
         );
+    }
+
+    #[test]
+    fn seed_to_bytes_from_bytes_test() {
+        let seed = Seed::from_bytes(&SEED.trits()).unwrap();
+
+        for i in 0..10 {
+            let subseed_1 = seed.subseed::<Kerl>(i as u64);
+            let subseed_2 = Seed::from_bytes(subseed_1.to_bytes()).unwrap();
+
+            assert!(slice_eq(subseed_1.to_bytes(), subseed_2.to_bytes()));
+        }
     }
 }
