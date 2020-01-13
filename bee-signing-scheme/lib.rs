@@ -50,7 +50,7 @@ pub trait RecoverableSignature {
 }
 
 // TODO: remove
-fn slice_eq(xs: &[i8], ys: &[i8]) -> bool {
+pub fn slice_eq(xs: &[i8], ys: &[i8]) -> bool {
     for (x, y) in xs.iter().zip(ys.iter()) {
         if x != y {
             return false;

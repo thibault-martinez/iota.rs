@@ -13,7 +13,7 @@ pub const MAX_TRIT_VALUE: i8 = 1;
 // TODO: documentation
 pub struct Seed([i8; 243]);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 // TODO: documentation
 pub enum SeedError {
     InvalidSeedError,
@@ -49,7 +49,12 @@ impl Seed {
     // TODO: documentation
     // TODO: tests
     pub fn from_bytes(bytes: &[i8]) -> Result<Self, SeedError> {
-        // TODO Check bytes
+        for byte in bytes {
+            match byte {
+                -1 | 0 | 1 => continue,
+                _ => return Err(SeedError::InvalidSeedError),
+            }
+        }
 
         Ok(Self::from_bytes_unchecked(bytes))
     }
@@ -160,6 +165,18 @@ mod tests {
             let subseed_2 = Seed::from_bytes(subseed_1.to_bytes()).unwrap();
 
             assert!(slice_eq(subseed_1.to_bytes(), subseed_2.to_bytes()));
+        }
+    }
+
+    #[test]
+    fn seed_from_bytes_invalid_test() {
+        let seed_trits = &mut SEED.trits();
+
+        seed_trits[100] = 42;
+
+        match Seed::from_bytes(&seed_trits) {
+            Ok(_) => unreachable!(),
+            Err(err) => assert_eq!(err, SeedError::InvalidSeedError),
         }
     }
 }
