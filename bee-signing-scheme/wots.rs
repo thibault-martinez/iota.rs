@@ -57,7 +57,7 @@ impl<S: Sponge + Default> crate::PrivateKeyGenerator for WotsPrivateKeyGenerator
     type PrivateKey = WotsPrivateKey<S>;
 
     fn generate(&self, seed: &Seed, index: u64) -> Self::PrivateKey {
-        let subseed = seed.subseed(index);
+        let subseed = seed.subseed::<S>(index);
         let mut sponge = S::default();
         let mut state = vec![0; self.security_level as usize * 6561];
 
