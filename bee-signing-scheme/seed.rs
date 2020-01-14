@@ -1,35 +1,33 @@
 // TODO Replace with bee impl when available
 use iota_crypto::Sponge;
-// TODO ?
-use super::*;
 
-// TODO Replace constants
+// TODO Put constants in a separate file
 
-/// The minimum value a trit can have
+// TODO: documentation
 pub const MIN_TRIT_VALUE: i8 = -1;
-/// The maximum value a trit can have
+// TODO: documentation
 pub const MAX_TRIT_VALUE: i8 = 1;
 
 // TODO: documentation
 pub struct Seed([i8; 243]);
 
-#[derive(Debug, PartialEq)]
 // TODO: documentation
+#[derive(Debug, PartialEq)]
 pub enum SeedError {
-    InvalidSeedError,
+    InvalidLength,
+    InvalidTrit,
 }
 
 // TODO: documentation
 impl Seed {
     // TODO: documentation
-    // TODO: tests
     pub fn subseed<S: Sponge + Default>(&self, index: u64) -> Self {
         let mut sponge = S::default();
-        let mut subseed_preimage = self.0.to_vec();
-        let mut subseed = [0; 243];
+        let mut subseed = self.0;
 
+        // TODO Put in trit utilities file
         for _ in 0..index {
-            for trit in &mut subseed_preimage {
+            for trit in subseed.iter_mut() {
                 *trit += 1;
                 if *trit > MAX_TRIT_VALUE {
                     *trit = MIN_TRIT_VALUE;
@@ -39,7 +37,7 @@ impl Seed {
             }
         }
 
-        sponge.absorb(&subseed_preimage).unwrap();
+        sponge.absorb(&subseed).unwrap();
         sponge.squeeze(&mut subseed).unwrap();
         sponge.reset();
 
@@ -47,12 +45,15 @@ impl Seed {
     }
 
     // TODO: documentation
-    // TODO: tests
     pub fn from_bytes(bytes: &[i8]) -> Result<Self, SeedError> {
+        if bytes.len() != 243 {
+            return Err(SeedError::InvalidLength);
+        }
+
         for byte in bytes {
             match byte {
                 -1 | 0 | 1 => continue,
-                _ => return Err(SeedError::InvalidSeedError),
+                _ => return Err(SeedError::InvalidTrit),
             }
         }
 
@@ -60,7 +61,6 @@ impl Seed {
     }
 
     // TODO: documentation
-    // TODO: tests
     fn from_bytes_unchecked(bytes: &[i8]) -> Self {
         let mut seed = [0; 243];
 
@@ -70,7 +70,6 @@ impl Seed {
     }
 
     // TODO: documentation
-    // TODO: tests
     pub fn to_bytes(&self) -> &[i8] {
         &self.0
     }
@@ -78,11 +77,12 @@ impl Seed {
 
 #[cfg(test)]
 mod tests {
-    // TODO needed ?
     use super::*;
-    // TODO remove
+    // TODO Remove when available in bee
     use iota_conversion::Trinary;
-    // TODO remove
+    // TODO super::super ?
+    use super::super::slice_eq;
+    // TODO Remove when available in bee
     use iota_crypto::{Curl, Kerl};
 
     const SEED: &str =
@@ -157,6 +157,28 @@ mod tests {
     }
 
     #[test]
+    fn seed_from_bytes_invalid_length_test() {
+        let seed_bytes = [0; 42];
+
+        match Seed::from_bytes(&seed_bytes) {
+            Ok(_) => unreachable!(),
+            Err(err) => assert_eq!(err, SeedError::InvalidLength),
+        }
+    }
+
+    #[test]
+    fn seed_from_bytes_invalid_trit_test() {
+        let seed_bytes = &mut SEED.trits();
+
+        seed_bytes[100] = 42;
+
+        match Seed::from_bytes(&seed_bytes) {
+            Ok(_) => unreachable!(),
+            Err(err) => assert_eq!(err, SeedError::InvalidTrit),
+        }
+    }
+
+    #[test]
     fn seed_to_bytes_from_bytes_test() {
         let seed = Seed::from_bytes(&SEED.trits()).unwrap();
 
@@ -165,18 +187,6 @@ mod tests {
             let subseed_2 = Seed::from_bytes(subseed_1.to_bytes()).unwrap();
 
             assert!(slice_eq(subseed_1.to_bytes(), subseed_2.to_bytes()));
-        }
-    }
-
-    #[test]
-    fn seed_from_bytes_invalid_test() {
-        let seed_trits = &mut SEED.trits();
-
-        seed_trits[100] = 42;
-
-        match Seed::from_bytes(&seed_trits) {
-            Ok(_) => unreachable!(),
-            Err(err) => assert_eq!(err, SeedError::InvalidSeedError),
         }
     }
 }
